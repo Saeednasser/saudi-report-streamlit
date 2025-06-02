@@ -104,7 +104,7 @@ if st.button("💥 تشغيل التقرير"):
                             report.append({"الرمز": clean_code, "الاسم": company_name, "السعر": price, "الرابط": tv_link})
                     except Exception as e:
                         st.error(f"⚠️ خطأ في الرمز {code}: {e}")
-            title = f"📊 تقرير اختراقات {market_option} ({selected_date}) - الفاصل الزمني {interval_name} \n📌 منصة: القوة الثلاثية للتداول في الأسواق المالية \"Triple Power\" - https://t.me/TriplePower1"
+            title = f"📊 تقرير اختراقات {market_option} ({selected_date}) - الفاصل الزمني {interval_name} \n📌 منصة: القوة الثلاثية للتداول في الأسواق المالية \"TriplePower\" - https://t.me/TriplePower1"
             st.markdown(f"### {title}")
 
             if report:
@@ -117,9 +117,9 @@ if st.button("💥 تشغيل التقرير"):
             if bot_token and chat_id:
                 if report:
                     text_for_telegram = "\n".join([f"{row['الرمز']} – {row['الاسم']} – {row['السعر']} {currency} – {row['الرابط']}" for row in report])
-                    text_for_telegram = f"📊 تقرير اختراقات {market_option} ({selected_date}) - الفاصل الزمني {interval_name}:\n" + text_for_telegram + "\n📌 منصة: القوة الثلاثية للتداول في الأسواق المالية \"Triple Power\" - https://t.me/TriplePower1"
+                    text_for_telegram = f"📊 تقرير اختراقات {market_option} ({selected_date}) - الفاصل الزمني {interval_name}:\n" + text_for_telegram + "\n📌 منصة: القوة الثلاثية للتداول في الأسواق المالية \"TriplePower\" - https://t.me/TriplePower1"
                 else:
-                    text_for_telegram = f"📊 تقرير اختراقات {market_option} ({selected_date}) - الفاصل الزمني {interval_name}:\n🔎 لا توجد اختراقات لهذا التاريخ والفاصل الزمني.\n📌 منصة: القوة الثلاثية للتداول في الأسواق المالية \"Triple Power\" - https://t.me/TriplePower1"
+                    text_for_telegram = f"📊 تقرير اختراقات {market_option} ({selected_date}) - الفاصل الزمني {interval_name}:\n🔎 لا توجد اختراقات لهذا التاريخ والفاصل الزمني.\n📌 منصة: القوة الثلاثية للتداول في الأسواق المالية \"TriplePower\" - https://t.me/TriplePower1"
 
                 url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
                 resp = requests.post(url, params={'chat_id': chat_id, 'text': text_for_telegram, 'parse_mode': 'Markdown'})
