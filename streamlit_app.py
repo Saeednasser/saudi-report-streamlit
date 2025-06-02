@@ -23,8 +23,8 @@ def fetch_data(symbols, start, end, interval):
 
 def detect_sell_breakout(df, lose_body=0.55):
     df = df.dropna(subset=['Open', 'High', 'Low', 'Close']).copy()
-    if df.empty:
-        return df
+    if df.empty or 'Date' not in df.columns:
+        return None
     if isinstance(df.index, pd.DatetimeIndex):
         df = df.reset_index().rename(columns={'index': 'Date'})
     o, h, l, c = df['Open'].values, df['High'].values, df['Low'].values, df['Close'].values
@@ -45,7 +45,9 @@ st.set_page_config(page_title="تقرير الأسواق", page_icon="📊")
 st.title("📊 واجهة اختراقات الأسواق")
 
 market_option = st.selectbox("اختر السوق:", ["السوق السعودي", "السوق الأمريكي"])
-timeframe_option = st.selectbox("اختر الفاصل الزمني:", ["1h", "1d", "1wk", "1mo"])
+timeframe_option = st.selectbox("اختر الفاصل الزمني:", ["1h (ساعة)", "1d (يوم)", "1wk (أسبوع)", "1mo (شهر)"])
+timeframe_map = {"1h (ساعة)": "1h", "1d (يوم)": "1d", "1wk (أسبوع)": "1wk", "1mo (شهر)": "1mo"}
+interval = timeframe_map[timeframe_option]
 
 symbols_input = st.text_area("ألصق الرموز هنا (رمز في كل سطر، بدون مسافات إضافية):")
 selected_symbols = [line.strip() for line in symbols_input.strip().splitlines() if line.strip()]
@@ -67,29 +69,29 @@ if st.button("💥 تشغيل التقرير"):
         if symbols:
             start = '2023-01-01'
             end = (date.today() + timedelta(days=1)).strftime('%Y-%m-%d')
-            data = fetch_data(symbols, start, end, timeframe_option)
+            data = fetch_data(symbols, start, end, interval)
             report = []
             if data is not None:
                 for code in symbols:
                     try:
                         df = data[code].reset_index()
-                        df = detect_sell_breakout(df)
-                        if df.empty or df['Date'].iloc[-1].date() != date.today():
+                        result_df = detect_sell_breakout(df)
+                        if result_df is None or result_df.empty or 'Date' not in result_df.columns:
                             continue
-                        if df['breakout'].iloc[-1]:
+                        if result_df['breakout'].iloc[-1]:
                             clean_code = code.replace('.SR', '')
-                            price = round(df['Close'].iloc[-1], 2)
+                            price = round(result_df['Close'].iloc[-1], 2)
                             report.append((clean_code, price))
                     except Exception as e:
                         st.error(f"⚠️ خطأ في الرمز {code}: {e}")
             if report:
-                text = f"📊 تقرير اختراقات {market_option} ({date.today()}) - الفاصل الزمني {timeframe_option}:\n"
+                text = f"📊 تقرير اختراقات {market_option} ({date.today()}) - الفاصل الزمني {interval}:\n"
                 for sym, pr in report:
                     text += f"🔹 {sym} – {pr} {currency}\n"
                 st.success("✅ تم تجهيز التقرير! انظر أدناه.")
                 st.text(text)
             else:
-                text = f"🔎 لا توجد اختراقات جديدة اليوم ({date.today()}) على الفاصل الزمني {timeframe_option}."
+                text = f"🔎 لا توجد اختراقات جديدة اليوم ({date.today()}) على الفاصل الزمني {interval}."
                 st.info(text)
 
             if bot_token and chat_id:
