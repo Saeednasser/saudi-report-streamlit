@@ -81,10 +81,10 @@ if st.button("💥 تشغيل التقرير"):
                         if result_df is None or result_df.empty or 'Date' not in result_df.columns:
                             continue
                         result_df['Date'] = pd.to_datetime(result_df['Date']).dt.date
-                        target_row = result_df[result_df['Date'] == selected_date]
-                        if not target_row.empty and target_row['breakout'].iloc[-1]:
+                        target_rows = result_df[result_df['Date'] == selected_date]
+                        if not target_rows.empty and target_rows['breakout'].any():
                             clean_code = code.replace('.SR', '')
-                            price = round(target_row['Close'].iloc[-1], 2)
+                            price = round(target_rows['Close'].iloc[-1], 2)
                             report.append((clean_code, price))
                     except Exception as e:
                         st.error(f"⚠️ خطأ في الرمز {code}: {e}")
