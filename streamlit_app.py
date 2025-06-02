@@ -54,8 +54,8 @@ st.title("📊 واجهة اختراقات الأسواق")
 
 market_option = st.selectbox("اختر السوق:", ["السوق السعودي", "السوق الأمريكي"])
 timeframe_option = st.selectbox("اختر الفاصل الزمني:", ["1d (يوم)", "1h (ساعة)", "1wk (أسبوع)", "1mo (شهر)"])
-timeframe_map = {"1h (ساعة)": "1h", "1d (يوم)": "1d", "1wk (أسبوع)": "1wk", "1mo (شهر)": "1mo"}
-interval = timeframe_map[timeframe_option]
+timeframe_map = {"1h (ساعة)": "ساعة", "1d (يوم)": "يومي", "1wk (أسبوع)": "أسبوعي", "1mo (شهر)": "شهري"}
+interval = [k for k, v in timeframe_map.items() if v == timeframe_map[timeframe_option]][0]
 
 selected_date = st.date_input("اختر التاريخ لاختبار الاختراقات:", value=date.today())
 
@@ -104,22 +104,22 @@ if st.button("💥 تشغيل التقرير"):
                     except Exception as e:
                         st.error(f"⚠️ خطأ في الرمز {code}: {e}")
             if report:
-                title = f"📊 تقرير اختراقات {market_option} ({selected_date}) - الفاصل الزمني {interval}"
+                title = f"📊 تقرير اختراقات {market_option} ({selected_date}) - الفاصل الزمني {timeframe_map[timeframe_option]}"
                 st.markdown(f"### {title}")
-                st.markdown("📌 منصة الإشعارات: [Triple Power](https://t.me/TriplePower1)")
+                st.markdown("📌 منصة: القوة الثلاثية للتداول في الأسواق المالية \"Triple Power\"")
                 df_report = pd.DataFrame(report)
                 for idx, row in df_report.iterrows():
                     st.markdown(f"🔹 **[{row['الرمز']}]({row['الرابط']})**\n{row['الاسم']}\n{row['السعر']} {currency}")
             else:
-                text = f"🔎 لا توجد اختراقات في التاريخ المحدد ({selected_date}) على الفاصل الزمني {interval}."
+                text = f"🔎 لا توجد اختراقات في التاريخ المحدد ({selected_date}) على الفاصل الزمني {timeframe_map[timeframe_option]}."
                 st.info(text)
 
             if bot_token and chat_id:
                 text_for_telegram = "\n".join([f"{row['الرمز']} – {row['الاسم']} – {row['السعر']} {currency} – {row['الرابط']}" for row in report])
                 if text_for_telegram:
-                    text_for_telegram = f"📊 تقرير اختراقات {market_option} ({selected_date}) - الفاصل الزمني {interval}:\n" + text_for_telegram + "\n📌 منصة الإشعارات: https://t.me/TriplePower1"
+                    text_for_telegram = f"📊 تقرير اختراقات {market_option} ({selected_date}) - الفاصل الزمني {timeframe_map[timeframe_option]}:\n" + text_for_telegram + "\n📌 منصة: القوة الثلاثية للتداول في الأسواق المالية \"Triple Power\""
                 else:
-                    text_for_telegram = f"🔎 لا توجد اختراقات في التاريخ المحدد ({selected_date}) على الفاصل الزمني {interval}."
+                    text_for_telegram = f"🔎 لا توجد اختراقات في التاريخ المحدد ({selected_date}) على الفاصل الزمني {timeframe_map[timeframe_option]}."
 
                 url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
                 resp = requests.post(url, params={'chat_id': chat_id, 'text': text_for_telegram, 'parse_mode': 'Markdown'})
