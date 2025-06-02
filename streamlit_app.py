@@ -104,10 +104,11 @@ if st.button("💥 تشغيل التقرير"):
                     except Exception as e:
                         st.error(f"⚠️ خطأ في الرمز {code}: {e}")
             if report:
-                st.success("✅ تم تجهيز التقرير! انظر أدناه.")
+                st.success(f"📊 تقرير اختراقات {market_option} ({selected_date}) - الفاصل الزمني {interval}:")
                 df_report = pd.DataFrame(report)
                 for idx, row in df_report.iterrows():
                     st.markdown(f"🔹 **[{row['الرمز']}]({row['الرابط']})**\n{row['الاسم']}\n{row['السعر']} {currency}")
+                st.markdown("📌 منصة الإشعارات: [Triple Power](https://t.me/TriplePower1)")
             else:
                 text = f"🔎 لا توجد اختراقات في التاريخ المحدد ({selected_date}) على الفاصل الزمني {interval}."
                 st.info(text)
