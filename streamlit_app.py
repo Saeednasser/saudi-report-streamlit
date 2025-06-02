@@ -104,11 +104,12 @@ if st.button("💥 تشغيل التقرير"):
                     except Exception as e:
                         st.error(f"⚠️ خطأ في الرمز {code}: {e}")
             if report:
-                st.success(f"📊 تقرير اختراقات {market_option} ({selected_date}) - الفاصل الزمني {interval}:")
+                title = f"📊 تقرير اختراقات {market_option} ({selected_date}) - الفاصل الزمني {interval}"
+                st.markdown(f"### {title}")
+                st.markdown("📌 منصة الإشعارات: [Triple Power](https://t.me/TriplePower1)")
                 df_report = pd.DataFrame(report)
                 for idx, row in df_report.iterrows():
                     st.markdown(f"🔹 **[{row['الرمز']}]({row['الرابط']})**\n{row['الاسم']}\n{row['السعر']} {currency}")
-                st.markdown("📌 منصة الإشعارات: [Triple Power](https://t.me/TriplePower1)")
             else:
                 text = f"🔎 لا توجد اختراقات في التاريخ المحدد ({selected_date}) على الفاصل الزمني {interval}."
                 st.info(text)
@@ -116,7 +117,7 @@ if st.button("💥 تشغيل التقرير"):
             if bot_token and chat_id:
                 text_for_telegram = "\n".join([f"{row['الرمز']} – {row['الاسم']} – {row['السعر']} {currency} – {row['الرابط']}" for row in report])
                 if text_for_telegram:
-                    text_for_telegram = f"📊 تقرير اختراقات {market_option} ({selected_date}) - الفاصل الزمني {interval}:\n" + text_for_telegram
+                    text_for_telegram = f"📊 تقرير اختراقات {market_option} ({selected_date}) - الفاصل الزمني {interval}:\n" + text_for_telegram + "\n📌 منصة الإشعارات: https://t.me/TriplePower1"
                 else:
                     text_for_telegram = f"🔎 لا توجد اختراقات في التاريخ المحدد ({selected_date}) على الفاصل الزمني {interval}."
 
