@@ -3,11 +3,11 @@ import pandas as pd
 import numpy as np
 import yfinance as yf
 import requests
-import os
 from datetime import date, timedelta
 
-bot_token = os.getenv('TELEGRAM_BOT_TOKEN', '').strip()
-chat_id   = os.getenv('TELEGRAM_CHAT_ID', '').strip()
+# مفاتيح التليجرام مباشرة
+bot_token = '7087005995:AAHmcfP2KKaqjVpZjzk6lxJn6QycZt6Gkcw'
+chat_id   = '19860917'
 
 def fetch_data(symbols, start, end, interval):
     return yf.download(
