@@ -61,9 +61,11 @@ if st.button("💥 تشغيل التقرير"):
         if market_option == "السوق السعودي":
             symbols = [s + ".SR" for s in selected_symbols]
             currency = 'ريال'
+            tv_prefix = "TADAWUL:"
         elif market_option == "السوق الأمريكي":
             symbols = [s.upper() for s in selected_symbols]
             currency = 'USD'
+            tv_prefix = "NASDAQ:"
         else:
             st.error("⚠️ سوق غير معروف.")
             symbols = []
@@ -81,23 +83,23 @@ if st.button("💥 تشغيل التقرير"):
                         if result_df is None or result_df.empty or 'Date' not in result_df.columns:
                             continue
                         result_df['Date'] = pd.to_datetime(result_df['Date']).dt.date
-                        # بدل البحث فقط عن تاريخ مطابق، نأخذ أقرب أسبوع أو شهر يغطي التاريخ المطلوب
                         if interval in ['1wk', '1mo']:
-                            target_row = result_df[result_df['Date'] <= selected_date].iloc[-1:]  # آخر صف قبل أو عند التاريخ
+                            target_row = result_df[result_df['Date'] <= selected_date].iloc[-1:]
                         else:
                             target_row = result_df[result_df['Date'] == selected_date]
                         if not target_row.empty and target_row['breakout'].any():
                             clean_code = code.replace('.SR', '')
                             price = round(target_row['Close'].iloc[-1], 2)
-                            report.append((clean_code, price))
+                            tv_link = f"https://www.tradingview.com/symbols/{tv_prefix}{clean_code}/"
+                            report.append((clean_code, price, tv_link))
                     except Exception as e:
                         st.error(f"⚠️ خطأ في الرمز {code}: {e}")
             if report:
                 text = f"📊 تقرير اختراقات {market_option} ({selected_date}) - الفاصل الزمني {interval}:\n"
-                for sym, pr in report:
-                    text += f"🔹 {sym} – {pr} {currency}\n"
+                for sym, pr, link in report:
+                    text += f"🔹 {sym} – {pr} {currency} – [رابط TradingView]({link})\n"
                 st.success("✅ تم تجهيز التقرير! انظر أدناه.")
-                st.text(text)
+                st.markdown(text)
             else:
                 text = f"🔎 لا توجد اختراقات في التاريخ المحدد ({selected_date}) على الفاصل الزمني {interval}."
                 st.info(text)
