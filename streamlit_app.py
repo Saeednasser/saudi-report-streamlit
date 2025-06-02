@@ -44,7 +44,7 @@ def detect_sell_breakout(df, lose_body=0.55):
 st.set_page_config(page_title="تقرير الأسواق", page_icon="📊")
 st.title("📊 واجهة اختراقات الأسواق")
 
-market_option = st.radio("اختر السوق:", ["السوق السعودي", "السوق الأمريكي"])
+market_option = st.selectbox("اختر السوق:", ["السوق السعودي", "السوق الأمريكي"])
 
 symbols_input = st.text_area("ألصق الرموز هنا (رمز في كل سطر، بدون مسافات إضافية):")
 selected_symbols = [line.strip() for line in symbols_input.strip().splitlines() if line.strip()]
@@ -56,44 +56,48 @@ if st.button("💥 تشغيل التقرير"):
         if market_option == "السوق السعودي":
             symbols = [s + ".SR" for s in selected_symbols]
             currency = 'ريال'
-        else:
+        elif market_option == "السوق الأمريكي":
             symbols = [s.upper() for s in selected_symbols]
             currency = 'USD'
-
-        start = '2023-01-01'
-        end = (date.today() + timedelta(days=1)).strftime('%Y-%m-%d')
-        data = fetch_data(symbols, start, end, '1d')
-        report = []
-        if data is not None:
-            for code in symbols:
-                try:
-                    df = data[code].reset_index()
-                    df = detect_sell_breakout(df)
-                    if df.empty or df['Date'].iloc[-1].date() != date.today():
-                        continue
-                    if df['breakout'].iloc[-1]:
-                        clean_code = code.replace('.SR', '')
-                        price = round(df['Close'].iloc[-1], 2)
-                        report.append((clean_code, price))
-                except Exception as e:
-                    st.error(f"⚠️ خطأ في الرمز {code}: {e}")
-        if report:
-            text = f"📊 تقرير اختراقات {market_option} ({date.today()}):\n"
-            for sym, pr in report:
-                text += f"🔹 {sym} – {pr} {currency}\n"
-            st.success("✅ تم تجهيز التقرير! انظر أدناه.")
-            st.text(text)
         else:
-            text = f"🔎 لا توجد اختراقات جديدة اليوم ({date.today()})."
-            st.info(text)
+            st.error("⚠️ سوق غير معروف.")
+            symbols = []
 
-        if bot_token and chat_id:
-            url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-            resp = requests.post(url, params={'chat_id': chat_id, 'text': text, 'parse_mode': 'HTML'})
-            if resp.status_code == 200:
-                st.success("✅ تم الإرسال إلى Telegram")
-                st.audio("https://www.soundjay.com/buttons/sounds/button-3.mp3")
+        if symbols:
+            start = '2023-01-01'
+            end = (date.today() + timedelta(days=1)).strftime('%Y-%m-%d')
+            data = fetch_data(symbols, start, end, '1d')
+            report = []
+            if data is not None:
+                for code in symbols:
+                    try:
+                        df = data[code].reset_index()
+                        df = detect_sell_breakout(df)
+                        if df.empty or df['Date'].iloc[-1].date() != date.today():
+                            continue
+                        if df['breakout'].iloc[-1]:
+                            clean_code = code.replace('.SR', '')
+                            price = round(df['Close'].iloc[-1], 2)
+                            report.append((clean_code, price))
+                    except Exception as e:
+                        st.error(f"⚠️ خطأ في الرمز {code}: {e}")
+            if report:
+                text = f"📊 تقرير اختراقات {market_option} ({date.today()}):\n"
+                for sym, pr in report:
+                    text += f"🔹 {sym} – {pr} {currency}\n"
+                st.success("✅ تم تجهيز التقرير! انظر أدناه.")
+                st.text(text)
             else:
-                st.error(f"❌ خطأ {resp.status_code}: {resp.text}")
-        else:
-            st.warning("⚠️ لم يتم ضبط متغيرات TELEGRAM_BOT_TOKEN و TELEGRAM_CHAT_ID.")
+                text = f"🔎 لا توجد اختراقات جديدة اليوم ({date.today()})."
+                st.info(text)
+
+            if bot_token and chat_id:
+                url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+                resp = requests.post(url, params={'chat_id': chat_id, 'text': text, 'parse_mode': 'HTML'})
+                if resp.status_code == 200:
+                    st.success("✅ تم الإرسال إلى Telegram")
+                    st.audio("https://www.soundjay.com/buttons/sounds/button-3.mp3")
+                else:
+                    st.error(f"❌ خطأ {resp.status_code}: {resp.text}")
+            else:
+                st.warning("⚠️ لم يتم ضبط متغيرات TELEGRAM_BOT_TOKEN و TELEGRAM_CHAT_ID.")
