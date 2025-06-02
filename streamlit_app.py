@@ -45,6 +45,7 @@ st.set_page_config(page_title="تقرير الأسواق", page_icon="📊")
 st.title("📊 واجهة اختراقات الأسواق")
 
 market_option = st.selectbox("اختر السوق:", ["السوق السعودي", "السوق الأمريكي"])
+timeframe_option = st.selectbox("اختر الفاصل الزمني:", ["1h", "1d", "1wk", "1mo"])
 
 symbols_input = st.text_area("ألصق الرموز هنا (رمز في كل سطر، بدون مسافات إضافية):")
 selected_symbols = [line.strip() for line in symbols_input.strip().splitlines() if line.strip()]
@@ -66,7 +67,7 @@ if st.button("💥 تشغيل التقرير"):
         if symbols:
             start = '2023-01-01'
             end = (date.today() + timedelta(days=1)).strftime('%Y-%m-%d')
-            data = fetch_data(symbols, start, end, '1d')
+            data = fetch_data(symbols, start, end, timeframe_option)
             report = []
             if data is not None:
                 for code in symbols:
@@ -82,13 +83,13 @@ if st.button("💥 تشغيل التقرير"):
                     except Exception as e:
                         st.error(f"⚠️ خطأ في الرمز {code}: {e}")
             if report:
-                text = f"📊 تقرير اختراقات {market_option} ({date.today()}):\n"
+                text = f"📊 تقرير اختراقات {market_option} ({date.today()}) - الفاصل الزمني {timeframe_option}:\n"
                 for sym, pr in report:
                     text += f"🔹 {sym} – {pr} {currency}\n"
                 st.success("✅ تم تجهيز التقرير! انظر أدناه.")
                 st.text(text)
             else:
-                text = f"🔎 لا توجد اختراقات جديدة اليوم ({date.today()})."
+                text = f"🔎 لا توجد اختراقات جديدة اليوم ({date.today()}) على الفاصل الزمني {timeframe_option}."
                 st.info(text)
 
             if bot_token and chat_id:
