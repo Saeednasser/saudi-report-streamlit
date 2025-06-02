@@ -46,7 +46,7 @@ st.title("📊 واجهة اختراقات الأسواق")
 
 market = st.selectbox("اختر السوق:", ["السعودي", "الأمريكي"])
 
-symbols_input = st.text_area("ألصق الرموز هنا (رمز في كل سطر):")
+symbols_input = st.text_area("ألصق الرموز هنا (رمز في كل سطر، بدون مسافات إضافية):")
 selected_symbols = [line.strip() for line in symbols_input.strip().splitlines() if line.strip()]
 
 if st.button("💥 تشغيل التقرير"):
@@ -56,7 +56,7 @@ if st.button("💥 تشغيل التقرير"):
         if market == "السعودي":
             symbols = [s + ".SR" for s in selected_symbols]
         else:
-            symbols = selected_symbols  # السوق الأمريكي بدون لاحقة
+            symbols = [s.upper() for s in selected_symbols]  # السوق الأمريكي غالبًا بحروف كبيرة
 
         start = '2023-01-01'
         end = (date.today() + timedelta(days=1)).strftime('%Y-%m-%d')
@@ -78,17 +78,21 @@ if st.button("💥 تشغيل التقرير"):
         if report:
             text = f"📊 تقرير اختراقات السوق ({market}) ({date.today()}):\n"
             for sym, pr in report:
-                text += f"🔹 {sym} – {pr} {'ريال' if market == 'السعودي' else 'USD'}\n"
+                currency = 'ريال' if market == 'السعودي' else 'USD'
+                text += f"🔹 {sym} – {pr} {currency}\n"
             st.success("✅ تم تجهيز التقرير! انظر أدناه.")
             st.text(text)
         else:
             text = f"🔎 لا توجد اختراقات جديدة اليوم ({date.today()})."
             st.info(text)
 
-        url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-        resp = requests.post(url, params={'chat_id': chat_id, 'text': text, 'parse_mode': 'HTML'})
-        if resp.status_code == 200:
-            st.success("✅ تم الإرسال إلى Telegram")
-            st.audio("https://www.soundjay.com/buttons/sounds/button-3.mp3")
+        if bot_token and chat_id:
+            url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+            resp = requests.post(url, params={'chat_id': chat_id, 'text': text, 'parse_mode': 'HTML'})
+            if resp.status_code == 200:
+                st.success("✅ تم الإرسال إلى Telegram")
+                st.audio("https://www.soundjay.com/buttons/sounds/button-3.mp3")
+            else:
+                st.error(f"❌ خطأ {resp.status_code}: {resp.text}")
         else:
-            st.error(f"❌ خطأ {resp.status_code}: {resp.text}")
+            st.warning("⚠️ لم يتم ضبط متغيرات TELEGRAM_BOT_TOKEN و TELEGRAM_CHAT_ID.")
