@@ -5,7 +5,7 @@ import yfinance as yf
 import requests
 from datetime import date, timedelta
 
-# مفاتيح التليجرام مباشرة
+# ⚠️ مفاتيح مباشرة للاستخدام الشخصي فقط
 bot_token = '7087005995:AAHmcfP2KKaqjVpZjzk6lxJn6QycZt6Gkcw'
 chat_id   = '19860917'
 
@@ -129,4 +129,4 @@ if st.button("💥 تشغيل التقرير"):
                 else:
                     st.error(f"❌ خطأ {resp.status_code}: {resp.text}")
             else:
-                st.warning("⚠️ لم يتم ضبط متغيرات TELEGRAM_BOT_TOKEN و TELEGRAM_CHAT_ID.")
+                st.warning("⚠️ لم يتم ضبط مفاتيح Telegram بشكل صحيح.")
