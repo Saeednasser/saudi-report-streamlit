@@ -4,7 +4,7 @@ import numpy as np
 import yfinance as yf
 import requests
 import os
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 
 bot_token = os.getenv('TELEGRAM_BOT_TOKEN', '').strip()
 chat_id   = os.getenv('TELEGRAM_CHAT_ID', '').strip()
@@ -49,6 +49,8 @@ timeframe_option = st.selectbox("اختر الفاصل الزمني:", ["1h (س�
 timeframe_map = {"1h (ساعة)": "1h", "1d (يوم)": "1d", "1wk (أسبوع)": "1wk", "1mo (شهر)": "1mo"}
 interval = timeframe_map[timeframe_option]
 
+selected_date = st.date_input("اختر التاريخ لاختبار الاختراقات:", value=date.today())
+
 symbols_input = st.text_area("ألصق الرموز هنا (رمز في كل سطر، بدون مسافات إضافية):")
 selected_symbols = [line.strip() for line in symbols_input.strip().splitlines() if line.strip()]
 
@@ -68,7 +70,7 @@ if st.button("💥 تشغيل التقرير"):
 
         if symbols:
             start = '2023-01-01'
-            end = (date.today() + timedelta(days=1)).strftime('%Y-%m-%d')
+            end = (selected_date + timedelta(days=1)).strftime('%Y-%m-%d')
             data = fetch_data(symbols, start, end, interval)
             report = []
             if data is not None:
@@ -78,20 +80,22 @@ if st.button("💥 تشغيل التقرير"):
                         result_df = detect_sell_breakout(df)
                         if result_df is None or result_df.empty or 'Date' not in result_df.columns:
                             continue
-                        if result_df['breakout'].iloc[-1]:
+                        result_df['Date'] = pd.to_datetime(result_df['Date']).dt.date
+                        target_row = result_df[result_df['Date'] == selected_date]
+                        if not target_row.empty and target_row['breakout'].iloc[-1]:
                             clean_code = code.replace('.SR', '')
-                            price = round(result_df['Close'].iloc[-1], 2)
+                            price = round(target_row['Close'].iloc[-1], 2)
                             report.append((clean_code, price))
                     except Exception as e:
                         st.error(f"⚠️ خطأ في الرمز {code}: {e}")
             if report:
-                text = f"📊 تقرير اختراقات {market_option} ({date.today()}) - الفاصل الزمني {interval}:\n"
+                text = f"📊 تقرير اختراقات {market_option} ({selected_date}) - الفاصل الزمني {interval}:\n"
                 for sym, pr in report:
                     text += f"🔹 {sym} – {pr} {currency}\n"
                 st.success("✅ تم تجهيز التقرير! انظر أدناه.")
                 st.text(text)
             else:
-                text = f"🔎 لا توجد اختراقات جديدة اليوم ({date.today()}) على الفاصل الزمني {interval}."
+                text = f"🔎 لا توجد اختراقات في التاريخ المحدد ({selected_date}) على الفاصل الزمني {interval}."
                 st.info(text)
 
             if bot_token and chat_id:
