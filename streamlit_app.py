@@ -4,7 +4,6 @@ import numpy as np
 import yfinance as yf
 import requests
 import os
-import json
 from datetime import date, timedelta
 
 bot_token = os.getenv('TELEGRAM_BOT_TOKEN', '').strip()
@@ -42,8 +41,10 @@ def detect_sell_breakout(df, lose_body=0.55):
     df['breakout'] = breakout
     return df
 
-st.set_page_config(page_title="تقرير السوق السعودي", page_icon="📊")
-st.title("📊 واجهة اختراقات السوق السعودي")
+st.set_page_config(page_title="تقرير الأسواق", page_icon="📊")
+st.title("📊 واجهة اختراقات الأسواق")
+
+market = st.selectbox("اختر السوق:", ["السعودي", "الأمريكي"])
 
 symbols_input = st.text_area("ألصق الرموز هنا (رمز في كل سطر):")
 selected_symbols = [line.strip() for line in symbols_input.strip().splitlines() if line.strip()]
@@ -52,7 +53,11 @@ if st.button("💥 تشغيل التقرير"):
     if not selected_symbols:
         st.warning("⚠️ الرجاء لصق رموز السوق في المربع أعلاه!")
     else:
-        symbols = [s + ".SR" for s in selected_symbols]
+        if market == "السعودي":
+            symbols = [s + ".SR" for s in selected_symbols]
+        else:
+            symbols = selected_symbols  # السوق الأمريكي بدون لاحقة
+
         start = '2023-01-01'
         end = (date.today() + timedelta(days=1)).strftime('%Y-%m-%d')
         data = fetch_data(symbols, start, end, '1d')
@@ -66,13 +71,14 @@ if st.button("💥 تشغيل التقرير"):
                         continue
                     if df['breakout'].iloc[-1]:
                         price = round(df['Close'].iloc[-1], 2)
-                        report.append((code.replace('.SR', ''), price))
+                        clean_code = code.replace('.SR', '')
+                        report.append((clean_code, price))
                 except Exception as e:
                     st.error(f"⚠️ خطأ في الرمز {code}: {e}")
         if report:
-            text = f"📊 تقرير اختراقات السوق السعودي ({date.today()}):\n"
+            text = f"📊 تقرير اختراقات السوق ({market}) ({date.today()}):\n"
             for sym, pr in report:
-                text += f"🔹 {sym} – {pr} ريال\n"
+                text += f"🔹 {sym} – {pr} {'ريال' if market == 'السعودي' else 'USD'}\n"
             st.success("✅ تم تجهيز التقرير! انظر أدناه.")
             st.text(text)
         else:
