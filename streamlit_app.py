@@ -97,8 +97,9 @@ if st.button("💥 تشغيل التقرير"):
             if report:
                 st.success("✅ تم تجهيز التقرير! انظر أدناه.")
                 df_report = pd.DataFrame(report)
-                df_report['الرابط'] = df_report['الرابط'].apply(lambda x: f"[رابط TradingView]({x})")
-                st.write(df_report.to_markdown(index=False), unsafe_allow_html=True)
+                df_report_display = df_report.copy()
+                df_report_display['الرابط'] = df_report_display['الرابط'].apply(lambda x: f"[رابط TradingView]({x})")
+                st.write(df_report_display)
             else:
                 text = f"🔎 لا توجد اختراقات في التاريخ المحدد ({selected_date}) على الفاصل الزمني {interval}."
                 st.info(text)
