@@ -44,7 +44,7 @@ def detect_sell_breakout(df, lose_body=0.55):
 st.set_page_config(page_title="تقرير الأسواق", page_icon="📊")
 st.title("📊 واجهة اختراقات الأسواق")
 
-market = st.selectbox("اختر السوق:", ["السعودي", "الأمريكي"])
+market_option = st.radio("اختر السوق:", ["السوق السعودي", "السوق الأمريكي"])
 
 symbols_input = st.text_area("ألصق الرموز هنا (رمز في كل سطر، بدون مسافات إضافية):")
 selected_symbols = [line.strip() for line in symbols_input.strip().splitlines() if line.strip()]
@@ -53,10 +53,12 @@ if st.button("💥 تشغيل التقرير"):
     if not selected_symbols:
         st.warning("⚠️ الرجاء لصق رموز السوق في المربع أعلاه!")
     else:
-        if market == "السعودي":
+        if market_option == "السوق السعودي":
             symbols = [s + ".SR" for s in selected_symbols]
+            currency = 'ريال'
         else:
-            symbols = [s.upper() for s in selected_symbols]  # السوق الأمريكي غالبًا بحروف كبيرة
+            symbols = [s.upper() for s in selected_symbols]
+            currency = 'USD'
 
         start = '2023-01-01'
         end = (date.today() + timedelta(days=1)).strftime('%Y-%m-%d')
@@ -70,15 +72,14 @@ if st.button("💥 تشغيل التقرير"):
                     if df.empty or df['Date'].iloc[-1].date() != date.today():
                         continue
                     if df['breakout'].iloc[-1]:
-                        price = round(df['Close'].iloc[-1], 2)
                         clean_code = code.replace('.SR', '')
+                        price = round(df['Close'].iloc[-1], 2)
                         report.append((clean_code, price))
                 except Exception as e:
                     st.error(f"⚠️ خطأ في الرمز {code}: {e}")
         if report:
-            text = f"📊 تقرير اختراقات السوق ({market}) ({date.today()}):\n"
+            text = f"📊 تقرير اختراقات {market_option} ({date.today()}):\n"
             for sym, pr in report:
-                currency = 'ريال' if market == 'السعودي' else 'USD'
                 text += f"🔹 {sym} – {pr} {currency}\n"
             st.success("✅ تم تجهيز التقرير! انظر أدناه.")
             st.text(text)
