@@ -41,6 +41,14 @@ def detect_sell_breakout(df, lose_body=0.55):
     df['breakout'] = breakout
     return df
 
+def get_company_name(symbol):
+    try:
+        ticker = yf.Ticker(symbol)
+        info = ticker.info
+        return info.get('shortName', 'اسم غير متوفر')
+    except:
+        return 'اسم غير متوفر'
+
 st.set_page_config(page_title="تقرير الأسواق", page_icon="📊")
 st.title("📊 واجهة اختراقات الأسواق")
 
@@ -90,21 +98,22 @@ if st.button("💥 تشغيل التقرير"):
                         if not target_row.empty and target_row['breakout'].any():
                             clean_code = code.replace('.SR', '')
                             price = round(target_row['Close'].iloc[-1], 2)
+                            company_name = get_company_name(code)
                             tv_link = f"https://www.tradingview.com/symbols/{tv_prefix}{clean_code}/"
-                            report.append({"الرمز": clean_code, "السعر": price, "الرابط": tv_link})
+                            report.append({"الرمز": clean_code, "الاسم": company_name, "السعر": price, "الرابط": tv_link})
                     except Exception as e:
                         st.error(f"⚠️ خطأ في الرمز {code}: {e}")
             if report:
                 st.success("✅ تم تجهيز التقرير! انظر أدناه.")
                 df_report = pd.DataFrame(report)
                 for idx, row in df_report.iterrows():
-                    st.markdown(f"🔹 **[{row['الرمز']}]({row['الرابط']})**\n{row['السعر']} {currency}")
+                    st.markdown(f"🔹 **[{row['الرمز']}]({row['الرابط']})**\n{row['الاسم']}\n{row['السعر']} {currency}")
             else:
                 text = f"🔎 لا توجد اختراقات في التاريخ المحدد ({selected_date}) على الفاصل الزمني {interval}."
                 st.info(text)
 
             if bot_token and chat_id:
-                text_for_telegram = "\n".join([f"{row['الرمز']} – {row['السعر']} {currency} – {row['الرابط']}" for row in report])
+                text_for_telegram = "\n".join([f"{row['الرمز']} – {row['الاسم']} – {row['السعر']} {currency} – {row['الرابط']}" for row in report])
                 if text_for_telegram:
                     text_for_telegram = f"📊 تقرير اختراقات {market_option} ({selected_date}) - الفاصل الزمني {interval}:\n" + text_for_telegram
                 else:
