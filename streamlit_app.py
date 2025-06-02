@@ -91,22 +91,27 @@ if st.button("💥 تشغيل التقرير"):
                             clean_code = code.replace('.SR', '')
                             price = round(target_row['Close'].iloc[-1], 2)
                             tv_link = f"https://www.tradingview.com/symbols/{tv_prefix}{clean_code}/"
-                            report.append((clean_code, price, tv_link))
+                            report.append({"الرمز": clean_code, "السعر": price, "الرابط": tv_link})
                     except Exception as e:
                         st.error(f"⚠️ خطأ في الرمز {code}: {e}")
             if report:
-                text = f"📊 تقرير اختراقات {market_option} ({selected_date}) - الفاصل الزمني {interval}:\n"
-                for sym, pr, link in report:
-                    text += f"🔹 {sym} – {pr} {currency} – [رابط TradingView]({link})\n"
                 st.success("✅ تم تجهيز التقرير! انظر أدناه.")
-                st.markdown(text)
+                df_report = pd.DataFrame(report)
+                df_report['الرابط'] = df_report['الرابط'].apply(lambda x: f"[رابط TradingView]({x})")
+                st.write(df_report.to_markdown(index=False), unsafe_allow_html=True)
             else:
                 text = f"🔎 لا توجد اختراقات في التاريخ المحدد ({selected_date}) على الفاصل الزمني {interval}."
                 st.info(text)
 
             if bot_token and chat_id:
+                text_for_telegram = "\n".join([f"{row['الرمز']} – {row['السعر']} {currency} – {row['الرابط']}" for row in report])
+                if text_for_telegram:
+                    text_for_telegram = f"📊 تقرير اختراقات {market_option} ({selected_date}) - الفاصل الزمني {interval}:\n" + text_for_telegram
+                else:
+                    text_for_telegram = f"🔎 لا توجد اختراقات في التاريخ المحدد ({selected_date}) على الفاصل الزمني {interval}."
+
                 url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-                resp = requests.post(url, params={'chat_id': chat_id, 'text': text, 'parse_mode': 'HTML'})
+                resp = requests.post(url, params={'chat_id': chat_id, 'text': text_for_telegram, 'parse_mode': 'Markdown'})
                 if resp.status_code == 200:
                     st.success("✅ تم الإرسال إلى Telegram")
                     st.audio("https://www.soundjay.com/buttons/sounds/button-3.mp3")
