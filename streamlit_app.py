@@ -98,7 +98,7 @@ if st.button("💥 تشغيل التقرير"):
                 st.success("✅ تم تجهيز التقرير! انظر أدناه.")
                 df_report = pd.DataFrame(report)
                 for idx, row in df_report.iterrows():
-                    st.markdown(f"🔹 **{row['الرمز']}** | {row['السعر']} {currency} | [رابط TradingView]({row['الرابط']})")
+                    st.markdown(f"🔹 **{row['الرمز']}** | {row['السعر']} {currency} | [TradingView]({row['الرابط']})")
             else:
                 text = f"🔎 لا توجد اختراقات في التاريخ المحدد ({selected_date}) على الفاصل الزمني {interval}."
                 st.info(text)
