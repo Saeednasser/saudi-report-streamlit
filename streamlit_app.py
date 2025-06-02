@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -10,22 +9,6 @@ from datetime import date, timedelta
 
 bot_token = os.getenv('TELEGRAM_BOT_TOKEN', '').strip()
 chat_id   = os.getenv('TELEGRAM_CHAT_ID', '').strip()
-
-all_symbols = [
-    "3010", "3040", "6014", "4071", "4162", "6040",
-    "8210", "2082", "4346", "2090", "2180", "4031"
-]
-
-PERSIST_FILE = 'selected_symbols.json'
-def save_selection(selection):
-    with open(PERSIST_FILE, 'w') as f:
-        json.dump(selection, f)
-
-def load_selection():
-    if os.path.exists(PERSIST_FILE):
-        with open(PERSIST_FILE, 'r') as f:
-            return json.load(f)
-    return []
 
 def fetch_data(symbols, start, end, interval):
     return yf.download(
@@ -61,18 +44,14 @@ def detect_sell_breakout(df, lose_body=0.55):
 
 st.set_page_config(page_title="تقرير السوق السعودي", page_icon="📊")
 st.title("📊 واجهة اختراقات السوق السعودي")
-previous_selection = load_selection()
-selected_symbols = st.multiselect(
-    "اختر الرموز للتحليل:",
-    all_symbols,
-    default=previous_selection
-)
+
+symbols_input = st.text_area("ألصق الرموز هنا (رمز في كل سطر):")
+selected_symbols = [line.strip() for line in symbols_input.strip().splitlines() if line.strip()]
 
 if st.button("💥 تشغيل التقرير"):
     if not selected_symbols:
-        st.warning("⚠️ لم تختَر أي رموز!")
+        st.warning("⚠️ الرجاء لصق رموز السوق في المربع أعلاه!")
     else:
-        save_selection(selected_symbols)
         symbols = [s + ".SR" for s in selected_symbols]
         start = '2023-01-01'
         end = (date.today() + timedelta(days=1)).strftime('%Y-%m-%d')
@@ -99,7 +78,7 @@ if st.button("💥 تشغيل التقرير"):
         else:
             text = f"🔎 لا توجد اختراقات جديدة اليوم ({date.today()})."
             st.info(text)
-        
+
         url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
         resp = requests.post(url, params={'chat_id': chat_id, 'text': text, 'parse_mode': 'HTML'})
         if resp.status_code == 200:
