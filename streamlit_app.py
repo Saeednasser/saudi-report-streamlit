@@ -104,9 +104,8 @@ if st.button("💥 تشغيل التقرير"):
                             report.append({"الرمز": clean_code, "الاسم": company_name, "السعر": price, "الرابط": tv_link})
                     except Exception as e:
                         st.error(f"⚠️ خطأ في الرمز {code}: {e}")
-            title = f"📊 تقرير اختراقات {market_option} ({selected_date}) - الفاصل الزمني {interval_name}"
+            title = f"📊 تقرير اختراقات {market_option} ({selected_date}) - الفاصل الزمني {interval_name} \n📌 منصة: القوة الثلاثية للتداول في الأسواق المالية \"Triple Power\" - https://t.me/TriplePower1"
             st.markdown(f"### {title}")
-            st.markdown("📌 منصة: القوة الثلاثية للتداول في الأسواق المالية \"Triple Power\" - [رابط](https://t.me/TriplePower1)")
 
             if report:
                 df_report = pd.DataFrame(report)
