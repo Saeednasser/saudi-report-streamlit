@@ -1,13 +1,14 @@
 
+import os
 import pandas as pd
 import numpy as np
 import yfinance as yf
 import requests
 from datetime import datetime, timedelta
 
-# ⚠️ مفاتيح تيليجرام
-bot_token = '7087005995:AAHmcfP2KKaqjVpZjzk6lxJn6GoyCzt6Gkcw'
-chat_id = '19860917'
+# ✅ قراءة التوكن والمعرف من متغيرات البيئة (GitHub Secrets)
+bot_token = os.getenv('TELEGRAM_BOT_TOKEN')
+chat_id = os.getenv('TELEGRAM_CHAT_ID')
 
 def fetch_data(symbols, start, end, interval):
     return yf.download(tickers=symbols, start=start, end=end, interval=interval,
@@ -65,6 +66,9 @@ def generate_report(market, symbols, interval, date_today):
     return report
 
 def send_to_telegram(message):
+    if not bot_token or not chat_id:
+        print("❌ لم يتم العثور على مفاتيح Telegram في البيئة.")
+        return None
     url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
     return requests.post(url, data={'chat_id': chat_id, 'text': message})
 
@@ -87,7 +91,7 @@ def main():
                 message = f"📊 تقرير {market} ({today}): لا توجد اختراقات اليوم."
 
             response = send_to_telegram(message)
-            print(f"📤 {market} – {'✅ تم الإرسال' if response.ok else '❌ فشل الإرسال: ' + response.text}")
+            print(f"📤 {market} – {'✅ تم الإرسال' if response and response.ok else '❌ فشل الإرسال أو المفاتيح غير مضبوطة'}")
         except Exception as err:
             print(f"❌ خطأ أثناء تجهيز تقرير {market}: {err}")
 
