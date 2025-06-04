@@ -1,4 +1,3 @@
-
 import os
 import pandas as pd
 import numpy as np
@@ -11,8 +10,16 @@ bot_token = os.getenv('TELEGRAM_BOT_TOKEN')
 chat_id = os.getenv('TELEGRAM_CHAT_ID')
 
 def fetch_data(symbols, start, end, interval):
-    return yf.download(tickers=symbols, start=start, end=end, interval=interval,
-                       group_by='ticker', auto_adjust=True, progress=False, threads=True)
+    return yf.download(
+        tickers=symbols,
+        start=start,
+        end=end,
+        interval=interval,
+        group_by='ticker',
+        auto_adjust=True,
+        progress=False,
+        threads=True
+    )
 
 def detect_sell_breakout(df, lose_body=0.55):
     df = df.dropna(subset=['Open', 'High', 'Low', 'Close']).copy()
