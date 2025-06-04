@@ -5,7 +5,7 @@ import yfinance as yf
 import requests
 from datetime import datetime, timedelta
 
-# ⚠️ مفاتيح تيليجرام - استبدلها بمفاتيحك الشخصية
+# ⚠️ مفاتيح تيليجرام
 bot_token = '7087005995:AAHmcfP2KKaqjVpZjzk6lxJn6GoyCzt6Gkcw'
 chat_id = '19860917'
 
@@ -69,32 +69,27 @@ def send_to_telegram(message):
     return requests.post(url, data={'chat_id': chat_id, 'text': message})
 
 def main():
-    now = datetime.now()
-    today = now.date()
-    current_time = now.strftime('%H:%M')
+    today = datetime.now().date()
+    schedules = [
+        ("السوق السعودي", "symbols_sa.txt"),
+        ("السوق الأمريكي", "symbols_us.txt")
+    ]
 
-    if current_time == '17:00':
-        market = "السوق السعودي"
-        file_path = "symbols_sa.txt"
-        interval = '1d'
-    elif current_time == '23:30':
-        market = "السوق الأمريكي"
-        file_path = "symbols_us.txt"
-        interval = '1d'
-    else:
-        return
+    for market, file_path in schedules:
+        try:
+            with open(file_path, 'r') as f:
+                symbols = [line.strip() for line in f if line.strip()]
+            interval = '1d'
+            report_lines = generate_report(market, symbols, interval, today)
+            if report_lines:
+                message = f"📊 تقرير اختراقات {market} ({today}):\n" + "\n".join(report_lines)
+            else:
+                message = f"📊 تقرير {market} ({today}): لا توجد اختراقات اليوم."
 
-    with open(file_path, 'r') as f:
-        symbols = [line.strip() for line in f if line.strip()]
-
-    report_lines = generate_report(market, symbols, interval, today)
-    if report_lines:
-        message = f"📊 تقرير اختراقات {market} ({today}):\n" + "\n".join(report_lines)
-    else:
-        message = f"📊 تقرير {market} ({today}): لا توجد اختراقات اليوم."
-
-    response = send_to_telegram(message)
-    print("✅ تم إرسال التقرير." if response.ok else f"❌ فشل الإرسال: {response.text}")
+            response = send_to_telegram(message)
+            print(f"📤 {market} – {'✅ تم الإرسال' if response.ok else '❌ فشل الإرسال: ' + response.text}")
+        except Exception as err:
+            print(f"❌ خطأ أثناء تجهيز تقرير {market}: {err}")
 
 if __name__ == "__main__":
     main()
