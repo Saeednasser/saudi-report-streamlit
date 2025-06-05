@@ -5,7 +5,7 @@ import yfinance as yf
 import requests
 from datetime import datetime, timedelta
 
-# ✅ قراءة التوكن والمعرف من متغيرات البيئة (GitHub Secrets)
+# قراءة التوكن والمعرف من متغيرات البيئة (GitHub Secrets)
 bot_token = os.getenv('TELEGRAM_BOT_TOKEN')
 chat_id = os.getenv('TELEGRAM_CHAT_ID')
 
@@ -86,6 +86,10 @@ def main():
         ("السوق الأمريكي", "symbols_us.txt")
     ]
 
+    # طباعة تحقق من المتغيرات
+    print(f"DEBUG → TELEGRAM_BOT_TOKEN = {bot_token}")
+    print(f"DEBUG → TELEGRAM_CHAT_ID   = {chat_id}")
+
     for market, file_path in schedules:
         try:
             with open(file_path, 'r') as f:
@@ -98,7 +102,11 @@ def main():
                 message = f"📊 تقرير {market} ({today}): لا توجد اختراقات اليوم."
 
             response = send_to_telegram(message)
-            print(f"📤 {market} – {'✅ تم الإرسال' if response and response.ok else '❌ فشل الإرسال أو المفاتيح غير مضبوطة'}")
+            if response is None:
+                print(f"📤 {market} – ❌ المفاتيح غير مضبوطة في البيئة.")
+            else:
+                print(f"DEBUG → Telegram API response: {response.text}")
+                print(f"📤 {market} – {'✅ تم الإرسال' if response.ok else '❌ فشل الإرسال'}")
         except Exception as err:
             print(f"❌ خطأ أثناء تجهيز تقرير {market}: {err}")
 
