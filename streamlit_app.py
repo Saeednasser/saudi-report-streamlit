@@ -49,6 +49,16 @@ def get_company_name(symbol):
     except:
         return 'اسم غير متوفر'
 
+def send_long_message(bot_token, chat_id, message):
+    url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+    max_length = 4000
+    for i in range(0, len(message), max_length):
+        part = message[i:i + max_length]
+        resp = requests.post(url, params={'chat_id': chat_id, 'text': part, 'parse_mode': 'Markdown'})
+        if resp.status_code != 200:
+            st.error(f"❌ خطأ {resp.status_code}: {resp.text}")
+            break
+
 st.set_page_config(page_title="تقرير الأسواق", page_icon="📊")
 st.title("📊 واجهة اختراقات الأسواق")
 
@@ -116,17 +126,24 @@ if st.button("💥 تشغيل التقرير"):
 
             if bot_token and chat_id:
                 if report:
-                    text_for_telegram = "\n".join([f"{row['الرمز']} – {row['الاسم']} – {row['السعر']} {currency} – {row['الرابط']}" for row in report])
-                    text_for_telegram = f"📊 تقرير اختراقات {market_option} ({selected_date}) - الفاصل الزمني {interval_name}:\n" + text_for_telegram + "\n📌 منصة: القوة الثلاثية للتداول في الأسواق المالية \"TriplePower\" - https://t.me/TriplePower1"
+                    text_for_telegram = "\n".join([
+                        f"{row['الرمز']} – {row['الاسم'][:10]} – {row['السعر']} {currency} – {row['الرابط']}"
+                        for row in report
+                    ])
+                    text_for_telegram = (
+                        f"📊 تقرير اختراقات {market_option} ({selected_date}) - الفاصل الزمني {interval_name}:\n"
+                        + text_for_telegram +
+                        "\n📌 منصة: القوة الثلاثية للتداول في الأسواق المالية \"TriplePower\" - https://t.me/TriplePower1"
+                    )
                 else:
-                    text_for_telegram = f"📊 تقرير اختراقات {market_option} ({selected_date}) - الفاصل الزمني {interval_name}:\n🔎 لا توجد اختراقات لهذا التاريخ والفاصل الزمني.\n📌 منصة: القوة الثلاثية للتداول في الأسواق المالية \"TriplePower\" - https://t.me/TriplePower1"
+                    text_for_telegram = (
+                        f"📊 تقرير اختراقات {market_option} ({selected_date}) - الفاصل الزمني {interval_name}:\n"
+                        "🔎 لا توجد اختراقات لهذا التاريخ والفاصل الزمني.\n"
+                        "📌 منصة: القوة الثلاثية للتداول في الأسواق المالية \"TriplePower\" - https://t.me/TriplePower1"
+                    )
 
-                url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-                resp = requests.post(url, params={'chat_id': chat_id, 'text': text_for_telegram, 'parse_mode': 'Markdown'})
-                if resp.status_code == 200:
-                    st.success("✅ تم الإرسال إلى Telegram")
-                    st.audio("https://www.soundjay.com/buttons/sounds/button-3.mp3")
-                else:
-                    st.error(f"❌ خطأ {resp.status_code}: {resp.text}")
+                send_long_message(bot_token, chat_id, text_for_telegram)
+                st.success("✅ تم الإرسال إلى Telegram")
+                st.audio("https://www.soundjay.com/buttons/sounds/button-3.mp3")
             else:
                 st.warning("⚠️ لم يتم ضبط مفاتيح Telegram بشكل صحيح.")
