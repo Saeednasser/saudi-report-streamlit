@@ -3,11 +3,12 @@ import pandas as pd
 import numpy as np
 import yfinance as yf
 import requests
+import os  # <-- المهم!
 from datetime import date, timedelta
 
-# ⚠️ مفاتيح مباشرة للاستخدام الشخصي فقط
-bot_token = '7087005995:AAHmcfP2KKaqjVpZjzk6lxJn6QycZt6Gkcw'
-chat_id   = '19860917'
+# ⚠️ اقرأ المفاتيح من متغيرات البيئة (للتوافق مع GitHub Actions وsecrets)
+bot_token = os.getenv('TELEGRAM_BOT_TOKEN')
+chat_id   = os.getenv('TELEGRAM_CHAT_ID')
 
 def fetch_data(symbols, start, end, interval):
     return yf.download(
@@ -124,6 +125,7 @@ if st.button("💥 تشغيل التقرير"):
             else:
                 st.info("🔎 لا توجد اختراقات لهذا التاريخ والفاصل الزمني.")
 
+            # استخدم القيم من متغيرات البيئة
             if bot_token and chat_id:
                 if report:
                     text_for_telegram = "\n".join([
